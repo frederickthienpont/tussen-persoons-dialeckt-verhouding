@@ -1,0 +1,81 @@
+import json
+import os
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+class WisselPersoonVerband:
+    def __init__(self, opslagbestand='verbanden.json'):
+        self.opslagbestand = opslagbestand
+        self.verbanden = {}
+        self.laad_gegevens()
+
+    def voeg_persoon_toe(self, naam):
+        if naam not in self.verbanden:
+            self.verbanden[naam] = set()
+
+    def klaim_verband(self, persoon1, persoon2):
+        self.voeg_persoon_toe(persoon1)
+        self.voeg_persoon_toe(persoon2)
+        self.verbanden[persoon1].add(persoon2)
+        self.verbanden[persoon2].add(persoon1)
+
+    def klang_verband(self, persoon1, persoon2):
+        if persoon1 in self.verbanden and persoon2 in self.verbanden[persoon1]:
+            self.verbanden[persoon1].remove(persoon2)
+            self.verbanden[persoon2].remove(persoon1)
+
+    def toon_verbanden(self, persoon):
+        return list(self.verbanden.get(persoon, set()))
+
+    def toon_alles(self):
+        return {persoon: list(verbonden_met) for persoon, verbonden_met in self.verbanden.items()}
+
+    def bewaar_gegevens(self):
+        met_lijsten = {k: list(v) for k, v in self.verbanden.items()}
+        with open(self.opslagbestand, 'w') as f:
+            json.dump(met_lijsten, f)
+
+    def laad_gegevens(self):
+        if os.path.exists(self.opslagbestand):
+            with open(self.opslagbestand, 'r') as f:
+                geladen = json.load(f)
+                self.verbanden = {k: set(v) for k, v in geladen.items()}
+
+# Flask routes
+verband_systeem = WisselPersoonVerband()
+
+@app.route('/klaim', methods=['POST'])
+def klaim_verband():
+    data = request.json
+    persoon1 = data.get('persoon1')
+    persoon2 = data.get('persoon2')
+    if persoon1 and persoon2:
+        verband_systeem.klaim_verband(persoon1, persoon2)
+        verband_systeem.bewaar_gegevens()
+        return jsonify({"message": f"Verband geklaimd tussen {persoon1} en {persoon2}"}), 200
+    return jsonify({"error": "Onjuiste gegevens"}), 400
+
+@app.route('/klang', methods=['POST'])
+def klang_verband():
+    data = request.json
+    persoon1 = data.get('persoon1')
+    persoon2 = data.get('persoon2')
+    if persoon1 and persoon2:
+        verband_systeem.klang_verband(persoon1, persoon2)
+        verband_systeem.bewaar_gegevens()
+        return jsonify({"message": f"Verband geklangd tussen {persoon1} en {persoon2}"}), 200
+    return jsonify({"error": "Onjuiste gegevens"}), 400
+
+@app.route('/verbanden/<persoon>', methods=['GET'])
+def toon_verbanden(persoon):
+    verbanden = verband_systeem.toon_verbanden(persoon)
+    return jsonify({"verbanden": verbanden}), 200
+
+@app.route('/alle_verbanden', methods=['GET'])
+def toon_alles():
+    verbanden = verband_systeem.toon_alles()
+    return jsonify({"verbanden": verbanden}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
