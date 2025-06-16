@@ -1,0 +1,42 @@
+class WisselPersoonVerband:
+    def __init__(self):
+        self.verbanden = {}
+
+    def voeg_persoon_toe(self, naam):
+        if naam not in self.verbanden:
+            self.verbanden[naam] = set()
+
+    def klaim_verband(self, persoon1, persoon2):
+        self.voeg_persoon_toe(persoon1)
+        self.voeg_persoon_toe(persoon2)
+        self.verbanden[persoon1].add(persoon2)
+        self.verbanden[persoon2].add(persoon1)
+        print(f"Verband geklaimd tussen {persoon1} en {persoon2}")
+
+    def klang_verband(self, persoon1, persoon2):
+        if persoon1 in self.verbanden and persoon2 in self.verbanden[persoon1]:
+            self.verbanden[persoon1].remove(persoon2)
+            self.verbanden[persoon2].remove(persoon1)
+            print(f"Verband geklangd tussen {persoon1} en {persoon2}")
+        else:
+            print(f"Geen bestaand verband tussen {persoon1} en {persoon2} om te klangen.")
+
+    def toon_verbanden(self, persoon):
+        if persoon in self.verbanden:
+            return self.verbanden[persoon]
+        return set()
+
+# Voorbeeldgebruik
+verband_systeem = WisselPersoonVerband()
+
+# Verbanden claimen
+verband_systeem.klaim_verband("Alice", "Bob")
+verband_systeem.klaim_verband("Alice", "Charlie")
+
+# Verband tonen
+print("Verbanden van Alice:", verband_systeem.toon_verbanden("Alice"))
+
+# Verband klangen (verbreken)
+verband_systeem.klang_verband("Alice", "Bob")
+print("Verbanden van Alice na klangen:", verband_systeem.toon_verbanden("Alice"))
+main.phyuthon
