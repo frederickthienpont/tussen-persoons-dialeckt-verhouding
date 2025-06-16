@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WisselPersoon Verbanden</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; }
+        input, button { padding: 8px; margin: 5px 0; width: 100%; }
+        #verbanden { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WisselPersoon Verbanden</h1>
+
+    <div>
+        <h2>Klaim een Verband</h2>
+        <input type="text" id="persoon1" placeholder="Persoon 1">
+        <input type="text" id="persoon2" placeholder="Persoon 2">
+        <button onclick="klaimVerband()">Klaim Verbond</button>
+    </div>
+
+    <div>
+        <h2>Verbreek een Verband</h2>
+        <input type="text" id="persoon1-klang" placeholder="Persoon 1">
+        <input type="text" id="persoon2-klang" placeholder="Persoon 2">
+        <button onclick="klangVerband()">Verbreek Verbond</button>
+    </div>
+
+    <div>
+        <h2>Toon Verbonden Personen</h2>
+        <input type="text" id="persoon-zoeken" placeholder="Zoek naar persoon">
+        <button onclick="toonVerbonden()">Zoek Verbonden</button>
+    </div>
+
+    <div id="verbanden">
+        <h2>Alle Verbonden</h2>
+        <pre id="verbanden-lijst"></pre>
+    </div>
+</div>
+
+<script>
+    const apiUrl = 'http://127.0.0.1:5000';
+
+    // Klaim verband
+    function klaimVerband() {
+        const persoon1 = document.getElementById('persoon1').value;
+        const persoon2 = document.getElementById('persoon2').value;
+
+        fetch(`${apiUrl}/klaim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ persoon1, persoon2 })
+        }).then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(error => alert('Fout bij het klaimen van het verband.'));
+    }
+
+    // Verbreek verband
+    function klangVerband() {
+        const persoon1 = document.getElementById('persoon1-klang').value;
+        const persoon2 = document.getElementById('persoon2-klang').value;
+
+        fetch(`${apiUrl}/klang`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ persoon1, persoon2 })
+        }).then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(error => alert('Fout bij het verbreken van het verband.'));
+    }
+
+    // Toon verbanden van een persoon
+    function toonVerbonden() {
+        const persoon = document.getElementById('persoon-zoeken').value;
+
+        fetch(`${apiUrl}/verbanden/${persoon}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('verbanden-lijst').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => alert('Fout bij het ophalen van verbanden.'));
+    }
+</script>
+
+</body>
+</html>
