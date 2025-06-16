@@ -1,0 +1,90 @@
+import json
+import os
+
+class WisselPersoonVerband:
+    def __init__(self, opslagbestand='verbanden.json'):
+        self.opslagbestand = opslagbestand
+        self.verbanden = {}
+        self.laad_gegevens()
+
+    def voeg_persoon_toe(self, naam):
+        if naam not in self.verbanden:
+            self.verbanden[naam] = set()
+
+    def klaim_verband(self, persoon1, persoon2):
+        self.voeg_persoon_toe(persoon1)
+        self.voeg_persoon_toe(persoon2)
+        self.verbanden[persoon1].add(persoon2)
+        self.verbanden[persoon2].add(persoon1)
+        print(f"✅ Verband geklaimd tussen {persoon1} en {persoon2}")
+
+    def klang_verband(self, persoon1, persoon2):
+        if persoon1 in self.verbanden and persoon2 in self.verbanden[persoon1]:
+            self.verbanden[persoon1].remove(persoon2)
+            self.verbanden[persoon2].remove(persoon1)
+            print(f"❌ Verband geklangd tussen {persoon1} en {persoon2}")
+        else:
+            print(f"⚠️ Geen bestaand verband tussen {persoon1} en {persoon2} om te klangen.")
+
+    def toon_verbanden(self, persoon):
+        return self.verbanden.get(persoon, set())
+
+    def toon_alles(self):
+        for persoon, verbonden_met in self.verbanden.items():
+            print(f"{persoon}: {', '.join(verbonden_met) if verbonden_met else '—'}")
+
+    def bewaar_gegevens(self):
+        met_lijsten = {k: list(v) for k, v in self.verbanden.items()}
+        with open(self.opslagbestand, 'w') as f:
+            json.dump(met_lijsten, f)
+        print("💾 Verbanden opgeslagen.")
+
+    def laad_gegevens(self):
+        if os.path.exists(self.opslagbestand):
+            with open(self.opslagbestand, 'r') as f:
+                geladen = json.load(f)
+                self.verbanden = {k: set(v) for k, v in geladen.items()}
+            print("📂 Verbanden geladen.")
+        else:
+            print("📁 Geen bestaande data gevonden. Nieuw bestand zal worden aangemaakt.")
+
+# 🔘 Command line interface
+def start_menu():
+    systeem = WisselPersoonVerband()
+
+    while True:
+        print("\n📘 WisselPersoon Verband Systeem")
+        print("1. Klaim verband")
+        print("2. Klang verband")
+        print("3. Toon verbanden van persoon")
+        print("4. Toon alle verbanden")
+        print("5. Opslaan")
+        print("6. Afsluiten")
+        keuze = input("Kies een optie (1-6): ")
+
+        if keuze == "1":
+            p1 = input("Naam persoon 1: ")
+            p2 = input("Naam persoon 2: ")
+            systeem.klaim_verband(p1, p2)
+        elif keuze == "2":
+            p1 = input("Naam persoon 1: ")
+            p2 = input("Naam persoon 2: ")
+            systeem.klang_verband(p1, p2)
+        elif keuze == "3":
+            naam = input("Van wie wil je verbanden zien? ")
+            verbanden = systeem.toon_verbanden(naam)
+            print(f"{naam} is verbonden met: {', '.join(verbanden) if verbanden else '—'}")
+        elif keuze == "4":
+            systeem.toon_alles()
+        elif keuze == "5":
+            systeem.bewaar_gegevens()
+        elif keuze == "6":
+            systeem.bewaar_gegevens()
+            print("👋 Programma afgesloten.")
+            break
+        else:
+            print("❌ Ongeldige keuze. Probeer opnieuw.")
+
+# Start het programma
+if __name__ == "__main__":
+    start_menu()
